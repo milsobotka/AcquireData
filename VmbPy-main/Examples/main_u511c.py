@@ -17,7 +17,7 @@ def create_directories(path):
 
 
 def get_timestamp():
-    return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
 
 
 def abort(reason: str, return_code: int = 1):
@@ -52,13 +52,13 @@ def setup_camera(cam: Camera):
     device_link_throughput_limit_mode_value = 'Off'
     device_link_throughput_limit_value = 450000000
     sensor_bit_depth_value = 'Bpp12'
-    exposure_time_value = 22471.852
+    exposure_time_value = 21418.599
     gain_auto_value = 'Off'
-    gain_value = 15
+    gain_value = 0
     height_value = 1032
     width_value = 1232
     offset_x = 624
-    offset_y = 520
+    offset_y = 584
 
     with cam:
         cam.ExposureAuto.set(exposure_auto_value)
@@ -140,7 +140,7 @@ def save_settings(settings, output_folder):
 def main():
     cam_id = parse_args()
     frames = []
-    capture_duration = 10
+    capture_duration = 30
     camera_name = 'u511c'
     base_dir = "C:/Users/admin/Desktop/phd-workspace/Recordings"
 
@@ -179,19 +179,19 @@ def main():
                     "resolution": f"{frames[0].shape[1]}x{frames[0].shape[0]}" if frames else "Unknown",
                     "fps": fps,
                     "duration": capture_duration,
-                    "light_source": "lampa Newell 5600K 60%",
+                    "light_source": "lampa Newell 5600K 70%",
                     "ExposureAuto": "Off", 
                     "BalanceWhiteAuto": "Off", 
                     "DeviceLinkThroughputLimitMode": "Off", 
                     "DeviceLinkThroughputLimit": 450000000, 
                     "SensorBitDepth": "Bpp12", 
-                    "ExposureTime": 22471.852, 
+                    "ExposureTime": 21418.599, 
                     "GainAuto": "Off", 
-                    "Gain": 15, 
+                    "Gain": 0, 
                     "Height": 1032,
                     "Width": 1232,
                     "OffsetX": 624,
-                    "OffsetY": 520
+                    "OffsetY": 584
                 }
 
                 save_settings(settings, output_folder)
