@@ -142,7 +142,7 @@ def main():
     frames = []
     capture_duration = 30
     camera_name = 'u235c'
-    base_dir = "C:/Users/admin/Desktop/phd-workspace/Recordings"
+    base_dir = "C:/Users/admin/Desktop/phd-workspace/input_data"
 
     timestamp = get_timestamp()
     output_folder = os.path.join(base_dir, camera_name, timestamp)

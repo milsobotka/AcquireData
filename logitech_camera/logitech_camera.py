@@ -6,7 +6,7 @@ import time
 import json
 
 camera_name = "logitech_carl_zeiss"
-base_path = f"C:/Users/admin/Desktop/phd-workspace/Recordings/{camera_name}"
+base_path = f"C:/Users/admin/Desktop/phd-workspace/input_data/{camera_name}"
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
 output_folder = os.path.join(base_path, timestamp)
 os.makedirs(output_folder, exist_ok=True)

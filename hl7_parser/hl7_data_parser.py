@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import hl7
 
-source_dir = r"C:/Users/admin/Desktop/phd-workspace/HL7_raw_data/logitech_carl_zeiss"
-dest_dir = r"C:/Users/admin/Desktop/phd-workspace/HL7_processed_data/logitech_carl_zeiss"
+source_dir = r"C:/Users/admin/Desktop/phd-workspace/HL7_raw_data/u130vswir"
+dest_dir = r"C:/Users/admin/Desktop/phd-workspace/HL7_processed_data/u130vswir"
 os.makedirs(dest_dir, exist_ok=True)
 
 def flatten_list(nested_list):
