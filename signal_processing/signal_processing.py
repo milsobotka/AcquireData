@@ -45,9 +45,17 @@ def compute_fft(signal, fs):
 def detect_face(frame):
     haarcascade_path = "C:/Users/admin/Desktop/phd-workspace/AcquireData/signal_processing/haarcascade_frontalface_default.xml"
     face_cascade = cv2.CascadeClassifier(haarcascade_path)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    if len(frame.shape) == 3:
+        if frame.shape[2] == 3:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        elif frame.shape[2] == 1:
+            gray = frame[:, :, 0]
+        else:
+            raise ValueError(f"Unexpected channel number: {frame.shape}")
+    else:
+        gray = frame
 
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
     if len(faces) > 0:
         x, y, w, h = faces[0]
         return (x, y, w, h)
@@ -55,7 +63,10 @@ def detect_face(frame):
         return None
 
 def extract_roi(frames, center_size=(200, 200)):
-    num_frames, height, width, _ = frames.shape
+    num_frames = frames.shape[0]
+    height = frames.shape[1]
+    width = frames.shape[2]
+
     first_frame = frames[0].astype(np.uint8)
     face_rect = detect_face(first_frame)
 
@@ -65,18 +76,28 @@ def extract_roi(frames, center_size=(200, 200)):
         y2 = min(y + h, height)
         cropped = []
         for i in range(num_frames):
-            frame_bgr = frames[i].astype(np.uint8)
-            roi = frame_bgr[y:y2, x:x2, :]
+            if frames.ndim == 4:
+                roi = frames[i, y:y2, x:x2, :]
+            else:
+                roi = frames[i, y:y2, x:x2]
+            roi = roi.astype(np.uint8)
             cropped.append(roi)
         return np.array(cropped), face_rect, True
     else:
         cy, cx = height // 2, width // 2
         hh, hw = center_size[0] // 2, center_size[1] // 2
-        cropped = frames[:, cy - hh : cy + hh, cx - hw : cx + hw, :]
+        if frames.ndim == 4:
+            cropped = frames[:, cy - hh : cy + hh, cx - hw : cx + hw, :]
+        else:
+            cropped = frames[:, cy - hh : cy + hh, cx - hw : cx + hw]
         return cropped, None, False
 
 def visualize_frame_roi(frame_bgr, output_path, face_rect=None, center_size=(200, 200)):
-    frame_rgb = frame_bgr[..., ::-1].astype(np.uint8)
+    if len(frame_bgr.shape) == 2:
+        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_GRAY2RGB)
+    else:
+        frame_rgb = frame_bgr[..., ::-1].astype(np.uint8)
+
     fig, ax = plt.subplots()
     ax.imshow(frame_rgb)
 
@@ -86,7 +107,7 @@ def visualize_frame_roi(frame_bgr, output_path, face_rect=None, center_size=(200
         ax.add_patch(rect)
         plt.title("Detected face (ROI)")
     else:
-        h, w, _ = frame_rgb.shape
+        h, w = frame_rgb.shape[:2]
         cy, cx = h // 2, w // 2
         hh, hw = center_size[0] // 2, center_size[1] // 2
         rect = plt.Rectangle((cx - hw, cy - hh), center_size[1], center_size[0],
@@ -103,7 +124,7 @@ def process_video_file(file_path, base_output_dir, input_directory):
     os.makedirs(output_dir, exist_ok=True)
 
     video_frames = np.load(file_path)
-    num_frames, height, width, channels = video_frames.shape
+    num_frames, height, width = video_frames.shape[:3]
     fps = num_frames / 30.0
 
     frames_roi, face_rect, face_found = extract_roi(video_frames)
@@ -113,10 +134,17 @@ def process_video_file(file_path, base_output_dir, input_directory):
         face_rect=face_rect
     )
 
-    r = frames_roi[..., 0].mean(axis=(1, 2))
-    g = frames_roi[..., 1].mean(axis=(1, 2))
-    b = frames_roi[..., 2].mean(axis=(1, 2))
-    avg = (r + g + b) / 3.0
+    if frames_roi.ndim == 4 and frames_roi.shape[3] == 3:
+        r = frames_roi[..., 0].mean(axis=(1, 2))
+        g = frames_roi[..., 1].mean(axis=(1, 2))
+        b = frames_roi[..., 2].mean(axis=(1, 2))
+        avg = (r + g + b) / 3.0
+    elif frames_roi.ndim == 4 and frames_roi.shape[3] == 1:
+        avg = frames_roi[..., 0].mean(axis=(1, 2))
+        r, g, b = avg, avg, avg
+    else:
+        avg = frames_roi.mean(axis=(1, 2))
+        r, g, b = avg, avg, avg
 
     fr = butter_bandpass_filter(r, 0.7, 4.0, fps)
     fg = butter_bandpass_filter(g, 0.7, 4.0, fps)
@@ -217,9 +245,8 @@ def process_video_file(file_path, base_output_dir, input_directory):
     print(f"  -> Results in: {output_dir}\n")
 
 if __name__ == "__main__":
-    base_output_dir = "C:/Users/admin/Desktop/phd-workspace/output_data/logitech_carl_zeiss/2025-03-10_15-47-44.275984"
-    input_directory = "C:/Users/admin/Desktop/phd-workspace/input_data/logitech_carl_zeiss/2025-03-10_15-47-44.275984"
-
+    base_output_dir = "C:/Users/admin/Desktop/phd-workspace/output_data/u511c/2025-03-10_15-55-19.855117"
+    input_directory = "C:/Users/admin/Desktop/phd-workspace/input_data//u511c/2025-03-10_15-55-19.855117"
 
     for root, _, files in os.walk(input_directory):
         for file in files:
